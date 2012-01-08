@@ -1,0 +1,220 @@
+<html>
+	<head>
+	</head>
+	<body onLoad='initialise()'>
+		<table border="0" cellspacing="1" cellpadding="0">
+		<tr>
+			<td colspan=3>
+			<input id='lcd' style='width:77px; height:25px; font-weight: normal; text-align:right'>
+			</td>
+			<td>
+			<button id='bC' style='width:25px; height:25px' onClick='clearLcd()'>C</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+			<button id='b7' style='width:25px; height:25px' onClick='addNumber(7)'>7</button>
+			</td>
+			<td>
+			<button id='b8' style='width:25px; height:25px' onClick='addNumber(8)'>8</button>
+			</td>
+			<td>
+			<button id='b9' style='width:25px; height:25px' onClick='addNumber(9)'>9</button>
+			</td>
+			<td>
+			<button id='bDiv' style='width:25px; height:25px' onClick='addAction("/")'>/</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+			<button id='b4' style='width:25px; height:25px' onClick='addNumber(4)'>4</button>
+			</td>
+			<td>
+			<button id='b5' style='width:25px; height:25px' onClick='addNumber(5)'>5</button>
+			</td>
+			<td>
+			<button id='b6' style='width:25px; height:25px' onClick='addNumber(6)'>6</button>
+			</td>
+			<td>
+			<button id='bMul' style='width:25px; height:25px' onClick='addAction("*")'>*</button>
+		</tr>
+		<tr>
+			<td>
+			<button id='b1' style='width:25px; height:25px' onClick='addNumber(1)'>1</button>
+			</td>
+			<td>
+			<button id='b2' style='width:25px; height:25px' onClick='addNumber(2)'>2</button>
+			</td>
+			<td>
+			<button id='b3' style='width:25px; height:25px' onClick='addNumber(3)'>3</button>
+			</td>
+			<td>
+			<button id='bMinus' style='width:25px; height:25px' onClick='addAction("-")'>-</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+			<button id='b0' style='width:25px; height:25px' onClick='addNumber(0)'>0</button>
+			</td>
+			<td>
+			<button id='bDot' style='width:25px; height:25px' onCLick='addDot()'>.</button>
+			</td>
+			<td>
+			<button id='bEq' style='width:25px; height:25px' onClick='addAction("=")'>=</button>
+			</td>
+			<td>
+			<button id='bPlus' style='width:25px; height:25px' onClick='addAction("+")'>+</button>
+			</td>
+		</tr>
+		</table>
+		
+		
+		<script type='text/javascript'>
+		
+		//Initialisation process
+		function initialise() {
+			initProperty('lcdString'     , '0');
+			initProperty('value1'        , 'null');
+			initProperty('value2'        , 'null');
+			initProperty('action'        , 'null');
+			initProperty('haveDot'       , 0);
+			initProperty('inputMode'     , 1);
+			initProperty('lcdFontWeight' , 'normal');
+			
+			document.getElementById('lcd').value = readProperty('lcdString');
+			document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+		}
+		
+		function clearLcd() {
+			setProperty('lcdString'     , '0');
+			setProperty('value1'        , 'null');
+			setProperty('action'        , 'null');
+			setProperty('haveDot'       , 0);
+			setProperty('inputMode'     , 1);
+			setProperty('lcdFontWeight' , 'normal');
+			
+			document.getElementById('lcd').value = '0';
+			document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+		}
+		
+		function addNumber(value) {
+			if (readProperty('inputMode') == 1) {
+				if (readProperty('lcdString') == '0') {
+					setProperty('lcdString', value);
+					document.getElementById('lcd').value = value;
+				} else if (readProperty('lcdString') == '-0') {
+					setProperty('lcdString', "-" + value);
+					document.getElementById('lcd').value = "-" + value;
+				} else {
+					setProperty('lcdString', readProperty('lcdString') + value);
+					document.getElementById('lcd').value = readProperty('lcdString');
+				}
+			} else {
+				setProperty('inputMode', 1);
+				setProperty('lcdString', value);
+				document.getElementById('lcd').value = value;
+				setProperty('lcdFontWeight' , 'normal');
+				document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+			}
+		}
+		
+		function addAction(value) {
+			if (value == '-' && readProperty('lcdString') == '0') {
+				setProperty('lcdString', '-0');
+				document.getElementById('lcd').value = readProperty('lcdString');
+				return;
+			}
+			if (value == '-' && readProperty('lcdString') == '-0') {
+				setProperty('lcdString', '0');
+				document.getElementById('lcd').value = readProperty('lcdString');
+				return;
+			}
+			if (value == '=') {
+				if (readProperty('value1') == 'null') {
+					return;
+				} else {
+					setProperty('value1', "" + doAction(readProperty('value1'),
+												        readProperty('lcdString'),
+												        readProperty('action')));
+					setProperty('action', 'null');
+					setProperty('lcdString', readProperty('value1'));
+					document.getElementById('lcd').value = readProperty('lcdString');
+					setProperty('value1', 'null');
+					setProperty('lcdFontWeight' , 'bold');
+					document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+				}
+			} else {
+				if (readProperty('action') == 'null') {
+					setProperty('action', value);
+					setProperty('value1', readProperty('lcdString'));
+				} else {
+					if (readProperty('inputMode') == 0) {
+						setProperty('action', value);
+						return;
+					} else {
+						setProperty('value1', "" + doAction(readProperty('value1'),
+													   readProperty('lcdString'),
+													   readProperty('action')));
+						setProperty('action', value);
+						setProperty('lcdString', readProperty('value1'));
+						document.getElementById('lcd').value = readProperty('lcdString');
+						setProperty('lcdFontWeight' , 'bold');
+						document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+					}
+				}
+			}
+			setProperty('haveDot', 0);
+			setProperty('inputMode', 0);
+			//if (readProperty('action') == null) {
+			//	setProperty('lcdFontWeight' , 'bold');
+			//	document.getElementById('lcd').style.fontWeight = readProperty('lcdFontWeight');
+			//}
+		}
+		
+		function addDot() {
+			if (readProperty('haveDot') == 1) {
+				return;
+			}
+			if (readProperty('inputMode') == 1) {
+				setProperty('haveDot', 1);
+				setProperty('lcdString', readProperty('lcdString') + '.');
+				document.getElementById('lcd').value = readProperty('lcdString');
+			} else {
+				setProperty('inputMode', 1);
+				setProperty('haveDot', 1);
+				setProperty('lcdString', '0.');
+				document.getElementById('lcd').value = readProperty('lcdString');
+			}
+		}
+		
+		function doAction(var1, var2, action) {
+			var op1 = parseFloat(var1);
+			var op2 = parseFloat(var2);
+			var rez;
+			switch (action) {
+				case '+': rez = op1 + op2; break;
+				case '-': rez = op1 - op2; break;
+				case '/': rez = op1 / op2; break;
+				case '*': rez = op1 * op2; break;
+			}
+			return rez;
+		}
+		
+		
+		//Functions for working with locale storage
+		function readProperty(property) {
+			return localStorage[property];
+		}
+		
+		function setProperty(property, value) {
+			localStorage[property] = value;
+		}
+		
+		function initProperty(property, defValue) {
+			if(localStorage[property] == null) {
+				localStorage[property] = defValue;
+			}
+		}
+		</script>
+	</body>
+</html>
